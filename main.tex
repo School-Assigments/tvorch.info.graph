@@ -5,7 +5,7 @@
 \usepackage[russian,english]{babel}
 \usepackage{graphics}
 \usepackage[normalem]{ulem}
-\usepackage{tikz} \usetikzlibrary{arrows.meta}
+\usepackage{tikz} \usetikzlibrary{arrows.meta,positioning}
 \usepackage{listings}
 
 \graphicspath{{res/}}
@@ -97,12 +97,12 @@
 \newcommand{\6}{(3, 1)}
 
 \newcommand{\drawVertexes}{
-    \draw \1 node[below] {1} circle(0.1);
-    \draw \2 node[left]  {2};
-    \draw \3 node[left]  {3};
-    \draw \4 node[below] {4};
-    \draw \5 node[right] {5} circle(0.1);
-    \draw \6 node[right] {6};
+    \draw \1 node[circle,draw,fill=white] {1};
+    \draw \2 node[circle,draw,fill=white] {2};
+    \draw \3 node[circle,draw,fill=white] {3};
+    \draw \4 node[circle,draw,fill=white] {4};
+    \draw \5 node[circle,draw,fill=white] {5};
+    \draw \6 node[circle,draw,fill=white] {6};
 }
 
 \newcommand{\drawEdges}{
@@ -116,17 +116,16 @@
     \draw[thick] \5 -- \6;
 }
 
-\newcommand{\drawGraph}{
-    \drawVertexes
-    \drawEdges
+\newcommand{\colour}[2]{
+    \draw[very thick,color=red] #1 -- #2;
 }
 
 \newcommand{\go}[2]{
-    \onslide<+->{\draw[very thick,color=red] #1 -- #2;}
+    \onslide<+->{\colour{#1}{#2}}
 }
 
 \newcommand{\Go}[2]{
-    \onslide<.->{\draw[very thick,color=red] #1 -- #2;}
+    \onslide<.->{\colour{#1}{#2}}
 }
 
 \begin{frame}[fragile]\frametitle{Depth-first search}
@@ -134,24 +133,25 @@
         \begin{column}{0.3\textwidth}
             \centering
             \begin{tikzpicture}
-                \drawGraph
+                \drawEdges
                 \go{\1}{\6}
                 \go{\6}{\2}
                 \go{\2}{\3}
                 \go{\3}{\4}
                 \go{\6}{\5}
+                \drawVertexes
             \end{tikzpicture}
         \end{column}
         \begin{column}{0.7\textwidth}
             $O(n + m)$
 
             \begin{lstlisting}[language=python,mathescape,gobble=16]
-                doDfs(g: int[n][], s: int)
+                doDfs(g: int[][], s: int)
                     used = [0] * n
 
                     dfs(u: int)
                         used[u] = 1
-                        for v $\in$ g$_u$
+                        for v $\in$ g[u]
                             dfs(v)
 
                     dfs(s)
@@ -166,26 +166,27 @@
         \begin{column}{0.3\textwidth}
             \centering
             \begin{tikzpicture}
-                \drawGraph
+                \drawEdges
                 \go{\1}{\2}
                 \Go{\1}{\6}
                 \go{\2}{\3}
                 \Go{\2}{\4}
                 \Go{\5}{\6}
+                \drawVertexes
             \end{tikzpicture}
         \end{column}
         \begin{column}{0.7\textwidth}
             $O(n + m)$
 
             \begin{lstlisting}[language=python,mathescape,gobble=16]
-                doBfs(g: int[n][], s: int)
+                doBfs(g: int[][], s: int)
                     dist = [-1] * n
                     queue q
                     q.push(s)
                     dist[u] = 0
                     while q $\not=\varnothing$
                         u = q.pop()
-                        for v $\in$ g$_u$
+                        for v $\in$ g[u]
                             if dist[v] == -1
                                 dist[v] = dist[u] + 1
                                 q.push(v)
@@ -194,6 +195,94 @@
     \end{columns}
 \end{frame}
 
-% TODO Отричательный цикл
+\newcommand{\drawWeights}{
+    \draw[thick,draw=none] \1 -- \2 node[sloped,pos=0.5,color=blue,below] {1};
+    \draw[thick,draw=none] \1 -- \6 node[sloped,pos=0.5,color=blue,below] {20};
+    \draw[thick,draw=none] \2 -- \3 node[sloped,pos=0.5,color=blue,above] {1};
+    \draw[thick,draw=none] \2 -- \4 node[sloped,pos=0.5,color=blue,above] {2};
+    \draw[thick,draw=none] \2 -- \6 node[sloped,pos=0.5,color=blue,above] {6};
+    \draw[thick,draw=none] \3 -- \4 node[sloped,pos=0.5,color=blue,above] {3};
+    \draw[thick,draw=none] \4 -- \6 node[sloped,pos=0.5,color=blue,above] {3};
+    \draw[thick,draw=none] \5 -- \6 node[sloped,pos=0.5,color=blue,above] {7};
+}
+
+\newcommand{\drawDist}[6]{
+    \draw \1 node[above right=-0.5 and  0.2,color=magenta] {#1};
+    \draw \2 node[above right=-0.5 and -0.8,color=magenta] {#2};
+    \draw \3 node[above right= 0.1 and  0.1,color=magenta] {#3};
+    \draw \4 node[above right= 0.1 and  0.1,color=magenta] {#4};
+    \draw \5 node[above right= 0.1 and  0.1,color=magenta] {#5};
+    \draw \6 node[above right=-0.5 and  0.2,color=magenta] {#6};
+}
+
+\begin{frame}[fragile]\frametitle{Dijkstra's algorithm}
+    \begin{center}
+        \begin{tikzpicture}
+            \drawEdges
+            \drawWeights
+            \onslide<1>{
+                \drawDist{$0$}{$\infty$}{$\infty$}{$\infty$}{$\infty$}{$\infty$}
+            }
+            \onslide<2>{
+                \drawDist{$0$}{$1$}{$\infty$}{$\infty$}{$\infty$}{$20$}
+                \colour{\1}{\2}
+                \colour{\1}{\6}
+            }
+            \onslide<3>{
+                \drawDist{$0$}{$1$}{$2$}{$3$}{$\infty$}{$7$}
+                \colour{\2}{\3}
+                \colour{\2}{\4}
+                \colour{\2}{\6}
+            }
+            \onslide<4>{
+                \drawDist{$0$}{$1$}{$2$}{$3$}{$\infty$}{$7$}
+                \colour{\2}{\3}
+                \colour{\3}{\4}
+            }
+            \onslide<5>{
+                \drawDist{$0$}{$1$}{$2$}{$3$}{$\infty$}{$6$}
+                \colour{\4}{\2}
+                \colour{\4}{\3}
+                \colour{\4}{\6}
+            }
+            \onslide<6>{
+                \drawDist{$0$}{$1$}{$2$}{$3$}{$13$}{$6$}
+                \colour{\6}{\1}
+                \colour{\6}{\2}
+                \colour{\6}{\4}
+                \colour{\6}{\5}
+            }
+            \drawVertexes
+            \onslide<1>{}
+            \onslide<2>{\draw \1 node[color=red,circle,draw] {1};}
+            \onslide<3>{\draw \2 node[color=red,circle,draw] {2};}
+            \onslide<4>{\draw \3 node[color=red,circle,draw] {3};}
+            \onslide<5>{\draw \4 node[color=red,circle,draw] {4};}
+            \onslide<6>{\draw \6 node[color=red,circle,draw] {6};}
+
+            \onslide<7>{}
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}[fragile]\frametitle{Dijkstra's algorithm}
+    $O(m + n\log n)$
+
+    \begin{lstlisting}[language=python,mathescape,gobble=8]
+        doDijkstra(g: int[][], w: int[][])
+            set<int, int> not_visited
+            dist = [inf] * n
+            dist[0] = 0
+            for u = 0...n
+                not_visited.insert(dist[u], u)
+            while s $\not = \varnothing$
+                d, u = not_visited.pop()
+                for v $\in$ g[u]
+                    if dist[v] > dist[u] + w[u][v]
+                        not_visited.erase(dist[v], v)
+                        dist[v] = dist[u] + w[u][v]
+                        not_visited.insert(dist[v], v)
+    \end{lstlisting}
+\end{frame}
 
 \end{document}
