@@ -86,6 +86,7 @@
         \item $E$ --- список ребер
         \item $n = |V|$ --- количество вершин
         \item $m = |E|$ --- количество ребер
+        \item $w$ --- массив весов ребер
     \end{itemize}
 \end{frame}
 
@@ -146,7 +147,7 @@
             $O(n + m)$
 
             \begin{lstlisting}[language=python,mathescape,gobble=16]
-                doDfs(g: int[][], s: int)
+                doDfs(n: int, g: int[][], s: int)
                     used = [0] * n
 
                     dfs(u: int)
@@ -179,7 +180,7 @@
             $O(n + m)$
 
             \begin{lstlisting}[language=python,mathescape,gobble=16]
-                doBfs(g: int[][], s: int)
+                doBfs(n: int, g: int[][], s: int)
                     dist = [-1] * n
                     queue q
                     q.push(s)
@@ -269,11 +270,11 @@
     $O(m + n\log n)$
 
     \begin{lstlisting}[language=python,mathescape,gobble=8]
-        doDijkstra(g: int[][], w: int[][])
+        doDijkstra(n: int, g: int[][], w: int[][], s: int)
             set<int, int> not_visited
             dist = [inf] * n
-            dist[0] = 0
-            for u = 0...n
+            dist[s] = 0
+            for u = 0...n-1
                 not_visited.insert(dist[u], u)
             while s $\not = \varnothing$
                 d, u = not_visited.pop()
@@ -282,6 +283,53 @@
                         not_visited.erase(dist[v], v)
                         dist[v] = dist[u] + w[u][v]
                         not_visited.insert(dist[v], v)
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]\frametitle{Отрицательный цикл}
+    \begin{center}
+        \begin{tikzpicture}
+            \draw (0,  0) node(1)[circle,draw] {1};
+            \draw (2,  0) node(2)[circle,draw] {2};
+            \draw (3,  1) node(3)[circle,draw] {3};
+            \draw (3, -1) node(4)[circle,draw] {4};
+            \draw (4,  0) node(5)[circle,draw] {5};
+            \draw (6,  0) node(6)[circle,draw] {6};
+            \draw[thick] (1) -- (2) node[pos=0.5,above,sloped,color=blue] {100};
+            \draw[thick] (2) -- (3) node[pos=0.5,above,sloped,color=blue] {-1};
+            \draw[thick] (5) -- (3) node[pos=0.5,above,sloped,color=blue] {-1};
+            \draw[thick] (2) -- (4) node[pos=0.5,below,sloped,color=blue] {-1};
+            \draw[thick] (5) -- (4) node[pos=0.5,below,sloped,color=blue] {-1};
+            \draw[thick] (5) -- (6) node[pos=0.5,above,sloped,color=blue] {100};
+        \end{tikzpicture}
+    \end{center}
+\end{frame}
+
+\begin{frame}[fragile]\frametitle{Ford-Bellman algorithm}
+    $O(mn)$
+
+    \begin{lstlisting}[language=python,mathescape,gobble=8]
+        doFord-Bellman(n: int, E: (int, int)[], w: int[][], s: int)
+            d = [inf] * n
+            d[s] = 0
+            for i=0...n-1
+                for (u, v) $\in$ E
+                    if d[v] > d[u] + w[u][v]
+                        d[v] = d[u] + w[u][v]
+    \end{lstlisting}
+\end{frame}
+
+\begin{frame}[fragile]\frametitle{Floyd algorithm}
+    $O(n^3)$
+
+    \begin{lstlisting}[language=python,mathescape,gobble=8]
+        doFloyd(n: int, G: int[][], w: int[][])
+            d = w
+            for k = 0...n-1
+                for u = 0...n-1
+                    for v = 0...n-1
+                        if d[u][v] > d[u][i] + d[i][v]
+                            d[u][v] = d[u][i] + d[i][v]
     \end{lstlisting}
 \end{frame}
 
