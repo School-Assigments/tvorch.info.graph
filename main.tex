@@ -1,0 +1,199 @@
+\documentclass[aspectratio=169]{beamer}
+
+\usepackage[T2A]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[russian,english]{babel}
+\usepackage{graphics}
+\usepackage[normalem]{ulem}
+\usepackage{tikz} \usetikzlibrary{arrows.meta}
+\usepackage{listings}
+
+\graphicspath{{res/}}
+\DeclareGraphicsExtensions{.png,.jpg}
+
+\renewcommand{\vec}{\overline}
+
+\usetheme{Copenhagen}
+
+\title{Алгоритмы поиска пути в графе}
+\author{Чубий Савва, 9ФМ}
+\institute{Лицей НИУ ВШЭ}
+\date{}%TODO
+
+\begin{document}
+\begin{frame}
+    \maketitle
+\end{frame}
+
+\begin{frame}\frametitle{Очень краткое введение в оценку ассимптитики}
+    $f(x) = O(g(x)) \Leftrightarrow \exists C = const:\ \forall x: \frac{|f(x)|}{|g(x)|} \leq C$
+\end{frame}
+
+\begin{frame}\frametitle{Способы хранения графа}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.5\textwidth}
+            \centering
+            \begin{tikzpicture}
+                % Vertex
+                \draw (0, 0)  node[left] {1};
+                \draw (2, 1)  node[above] {2};
+                \draw (3, 2)  node[right] {3};
+                \draw (2, -1) node[below] {4};
+                % Edge
+                \draw[thick]        (2, 1)  -- (2, -1);
+                \draw[thick,-Latex] (2, 1)  -- (0, 0);
+                \draw[thick,-Latex] (2, -1) -- (0, 0);
+                \draw[thick]        (2, 1)  -- (3, 2);
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.5\textwidth}
+            \begin{itemize}
+                \item Матрица смежности
+
+                    \begin{tabular}{c|cccc}
+                          & 1 & 2 & 3 & 4 \\\hline
+                        1 & 0 & 0 & 0 & 0 \\
+                        2 & 1 & 0 & 1 & 1 \\
+                        3 & 0 & 1 & 0 & 0 \\
+                        4 & 1 & 1 & 0 & 0 \\
+                    \end{tabular}
+                \item Список смежности
+
+                    1: ---
+
+                    2: 1 3 4
+
+                    3: 2
+
+                    4: 1 2
+                \item Скисок ребер
+
+                    2--1;
+                    2--3;
+                    2--4;
+                    3--2;
+                    4--1;
+                    4--2
+            \end{itemize}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}\frametitle{Обозначения}
+    \begin{itemize}
+        \item $G$ --- матрица смежности
+        \item $g$ --- список смежности
+        \item $E$ --- список ребер
+        \item $n = |V|$ --- количество вершин
+        \item $m = |E|$ --- количество ребер
+    \end{itemize}
+\end{frame}
+
+\newcommand{\1}{(1, 0)}
+\newcommand{\2}{(0, 1)}
+\newcommand{\3}{(1, 3)}
+\newcommand{\4}{(2, 2)}
+\newcommand{\5}{(3, 3)}
+\newcommand{\6}{(3, 1)}
+
+\newcommand{\drawVertexes}{
+    \draw \1 node[below] {1} circle(0.1);
+    \draw \2 node[left]  {2};
+    \draw \3 node[left]  {3};
+    \draw \4 node[below] {4};
+    \draw \5 node[right] {5} circle(0.1);
+    \draw \6 node[right] {6};
+}
+
+\newcommand{\drawEdges}{
+    \draw[thick] \1 -- \2;
+    \draw[thick] \1 -- \6;
+    \draw[thick] \2 -- \3;
+    \draw[thick] \2 -- \4;
+    \draw[thick] \2 -- \6;
+    \draw[thick] \3 -- \4;
+    \draw[thick] \4 -- \6;
+    \draw[thick] \5 -- \6;
+}
+
+\newcommand{\drawGraph}{
+    \drawVertexes
+    \drawEdges
+}
+
+\newcommand{\go}[2]{
+    \onslide<+->{\draw[very thick,color=red] #1 -- #2;}
+}
+
+\newcommand{\Go}[2]{
+    \onslide<.->{\draw[very thick,color=red] #1 -- #2;}
+}
+
+\begin{frame}[fragile]\frametitle{Depth-first search}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.3\textwidth}
+            \centering
+            \begin{tikzpicture}
+                \drawGraph
+                \go{\1}{\6}
+                \go{\6}{\2}
+                \go{\2}{\3}
+                \go{\3}{\4}
+                \go{\6}{\5}
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.7\textwidth}
+            $O(n + m)$
+
+            \begin{lstlisting}[language=python,mathescape,gobble=16]
+                doDfs(g: int[n][], s: int)
+                    used = [0] * n
+
+                    dfs(u: int)
+                        used[u] = 1
+                        for v $\in$ g$_u$
+                            dfs(v)
+
+                    dfs(s)
+
+            \end{lstlisting}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+\begin{frame}[fragile]\frametitle{Breadth-first search}
+    \begin{columns}[onlytextwidth]
+        \begin{column}{0.3\textwidth}
+            \centering
+            \begin{tikzpicture}
+                \drawGraph
+                \go{\1}{\2}
+                \Go{\1}{\6}
+                \go{\2}{\3}
+                \Go{\2}{\4}
+                \Go{\5}{\6}
+            \end{tikzpicture}
+        \end{column}
+        \begin{column}{0.7\textwidth}
+            $O(n + m)$
+
+            \begin{lstlisting}[language=python,mathescape,gobble=16]
+                doBfs(g: int[n][], s: int)
+                    dist = [-1] * n
+                    queue q
+                    q.push(s)
+                    dist[u] = 0
+                    while q $\not=\varnothing$
+                        u = q.pop()
+                        for v $\in$ g$_u$
+                            if dist[v] == -1
+                                dist[v] = dist[u] + 1
+                                q.push(v)
+            \end{lstlisting}
+        \end{column}
+    \end{columns}
+\end{frame}
+
+% TODO Отричательный цикл
+
+\end{document}
